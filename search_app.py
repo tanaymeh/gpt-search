@@ -86,7 +86,8 @@ def option_choice():
     if genre == "Select Sample text file": flag=False
     else: flag = True
     return flag
-    
+
+@st.cache_resource
 def get_model():
     return SentenceTransformer("all-mpnet-base-v2")
 
