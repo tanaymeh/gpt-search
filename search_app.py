@@ -87,7 +87,6 @@ def option_choice():
     else: flag = True
     return flag
     
-@st.cache
 def get_model():
     return SentenceTransformer("all-mpnet-base-v2")
 
