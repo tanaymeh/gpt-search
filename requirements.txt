@@ -1,0 +1,6 @@
+tqdm
+numpy
+torch
+openai
+streamlit
+sentence-transformers

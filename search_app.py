@@ -11,7 +11,7 @@ from src.engine import file_extract, get_similar_sentences, extract, openai_infe
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-openai.api_key = ""
+openai.api_key = st.secrets["OPENAI_KEY"]
 
 def text(text, tag='h1', align='left', color=None):
     assert tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'strong', 'u', 'i', 'p'], "Invalid Tag"
@@ -21,9 +21,10 @@ def text(text, tag='h1', align='left', color=None):
         st.markdown(f"<{tag} style='text-align: {align}; color: {color}'>{text}</{tag}>", unsafe_allow_html=True)
 
 def header():
-    text("GPT Search", "h1")
+    st.title("GPT Search")
+    st.markdown("Made with 🖤 by **[Tanay](https://twitter.com/serious_mehta)**")
     text("Upload a text file or Choose one sample text file and ask ChatGPT to answer queries from it!", "p")
-    text("Please Note: This is not a summarization app, it merely answers questions that can be found in the text corpus.", "p")
+    st.caption("Please Note: This is not a summarization app, it merely answers questions that can be found in the text corpus.")
 
 def selectbox():
     """
@@ -86,9 +87,16 @@ def option_choice():
     else: flag = True
     return flag
     
+@st.cache
+def get_model():
+    return SentenceTransformer("all-mpnet-base-v2")
 
 if __name__ == "__main__":
-    model = SentenceTransformer("all-mpnet-base-v2")
+    # Emdash might cause troubles in some browsers
+    st.set_page_config(
+        page_title="GPT Search – By Tanay",
+    )
+    model = get_model()
     header()
     upload = option_choice()
     if upload is True:
@@ -103,15 +111,26 @@ if __name__ == "__main__":
             query = st.text_input("Enter your Query", "ex: How can AI be used in healthcare?")
     
     if lines:
+        # Add a slider for top-k results and temperature
+        # extra_param = st.checkbox("Extra Parameters")
+        k_val, temp = 5, 0.2
+        # if extra_param:
+        #     st.write("If you don't know what any of this means, just leave them as it is.")
+        #     cols_0, col_1 = st.columns([1, 1])
+        #     with cols_0:
+        #         k_val = st.slider('Select how many top-results to use?', 2, 10, 5)
+        #         st.caption("Only select a value > 5 when you have a large text corpus.")
+        #     with col_1:
+        #         temp = st.slider('GPT-temperature', 0.01, 2.00, 0.20)
+        #         st.caption("Higher the temperature, more creative but unstable results.")
         start = time.time()
-        print(lines)
         text_embeddings = file_extract(model, lines)
         query_embeddings = extract(model, lines)
         if st.button("GO!"):
-            sentences = get_similar_sentences(lines, query_embeddings, text_embeddings, k=5)
+            sentences = get_similar_sentences(lines, query_embeddings, text_embeddings, k=k_val)
             data = {'query': query, 'top_results': sentences}
-            res = openai_inference(data, k=5, temperature=0.2)
+            res = openai_inference(data, k=k_val, temperature=temp)
             time_taken = time.time() - start
             text(f"Results", "h5")
-            text(f"(took {time_taken:.4f} seconds)", "p")
+            st.caption(f"(took {time_taken:.4f} seconds)")
             st.write(res)
