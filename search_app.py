@@ -125,7 +125,7 @@ if __name__ == "__main__":
         #         st.caption("Higher the temperature, more creative but unstable results.")
         start = time.time()
         text_embeddings = file_extract(model, lines)
-        query_embeddings = extract(model, lines)
+        query_embeddings = extract(model, query)
         if st.button("GO!"):
             sentences = get_similar_sentences(lines, query_embeddings, text_embeddings, k=k_val)
             data = {'query': query, 'top_results': sentences}
